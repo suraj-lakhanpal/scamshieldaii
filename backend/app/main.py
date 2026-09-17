@@ -1,10 +1,5 @@
 """
 ScamShield AI - Backend Entry Point
---------------------------------------
-FastAPI application exposing local, rule-based scam-detection heuristics.
-
-Run with (from the `backend/` folder's parent, using --app-dir):
-    py -m uvicorn app.main:app --reload --app-dir backend
 """
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -18,6 +13,7 @@ from app.config import (
     ALLOWED_IMAGE_MIME_TYPES,
     normalize_language,
 )
+
 from app.schemas import (
     LinkAnalysisRequest,
     MessageAnalysisRequest,
@@ -27,17 +23,23 @@ from app.schemas import (
     HealthResponse,
     RootResponse,
 )
+
 from app.services.url_analyzer import analyze_url
 from app.services.message_analyzer import analyze_message
 from app.services.qr_analyzer import analyze_qr_bytes
-from app.services.media_analyzer import analyze_media_text, analyze_media_image
+from app.services.media_analyzer import (
+    analyze_media_text,
+    analyze_media_image,
+)
+
 
 app = FastAPI(
     title="ScamShield AI",
     description="A defensive, local heuristic scam-detection assistant.",
     version=APP_VERSION,
 )
-from fastapi.middleware.cors import CORSMiddleware
+
+# CORS: allows the Netlify frontend to call the Render backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -45,21 +47,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# ---------------------------------------------------------------------------
-# CORS
-# ---------------------------------------------------------------------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
 
 
-# ---------------------------------------------------------------------------
-# Basic routes
-# ---------------------------------------------------------------------------
 @app.get("/", response_model=RootResponse)
 def read_root():
     return RootResponse(
@@ -70,18 +59,21 @@ def read_root():
             "and media. It never claims certainty and never contacts submitted URLs."
         ),
         version=APP_VERSION,
-        disclaimer="This is a preliminary heuristic analysis tool, not a guarantee of safety.",
+        disclaimer=(
+            "This is a preliminary heuristic analysis tool, "
+            "not a guarantee of safety."
+        ),
     )
 
 
 @app.get("/health", response_model=HealthResponse)
 def health_check():
-    return HealthResponse(status="healthy", service=SERVICE_NAME)
+    return HealthResponse(
+        status="healthy",
+        service=SERVICE_NAME,
+    )
 
 
-# ---------------------------------------------------------------------------
-# Link analysis
-# ---------------------------------------------------------------------------
 @app.post("/analyze-link", response_model=AnalysisResponse)
 def analyze_link(payload: LinkAnalysisRequest):
     language = normalize_language(payload.language)
@@ -89,9 +81,6 @@ def analyze_link(payload: LinkAnalysisRequest):
     return AnalysisResponse(**result)
 
 
-# ---------------------------------------------------------------------------
-# Message analysis
-# ---------------------------------------------------------------------------
 @app.post("/analyze-message", response_model=AnalysisResponse)
 def analyze_message_endpoint(payload: MessageAnalysisRequest):
     language = normalize_language(payload.language)
@@ -99,35 +88,43 @@ def analyze_message_endpoint(payload: MessageAnalysisRequest):
     return AnalysisResponse(**result)
 
 
-# ---------------------------------------------------------------------------
-# QR analysis
-# ---------------------------------------------------------------------------
 @app.post("/analyze-qr", response_model=QRAnalysisResponse)
-async def analyze_qr(file: UploadFile = File(...), language: str = Form("en")):
+async def analyze_qr(
+    file: UploadFile = File(...),
+    language: str = Form("en"),
+):
     language = normalize_language(language)
 
     if file.content_type not in ALLOWED_IMAGE_MIME_TYPES:
         raise HTTPException(
             status_code=415,
-            detail=f"Unsupported file type '{file.content_type}'. Please upload a PNG, JPEG, or WEBP image.",
+            detail=(
+                f"Unsupported file type '{file.content_type}'. "
+                "Please upload a PNG, JPEG, or WEBP image."
+            ),
         )
 
     contents = await file.read()
+
     if len(contents) > MAX_UPLOAD_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=f"File too large. Maximum allowed size is {MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)}MB.",
+            detail=(
+                f"File too large. Maximum allowed size is "
+                f"{MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)}MB."
+            ),
         )
+
     if len(contents) == 0:
-        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is empty.",
+        )
 
     result = analyze_qr_bytes(contents, language)
     return QRAnalysisResponse(**result)
 
 
-# ---------------------------------------------------------------------------
-# Media (experimental AI-content) analysis
-# ---------------------------------------------------------------------------
 @app.post("/analyze-media", response_model=MediaAnalysisResponse)
 async def analyze_media(
     text: str = Form(None),
@@ -140,14 +137,23 @@ async def analyze_media(
         if file.content_type not in ALLOWED_IMAGE_MIME_TYPES:
             raise HTTPException(
                 status_code=415,
-                detail=f"Unsupported file type '{file.content_type}'. Please upload a PNG, JPEG, or WEBP image.",
+                detail=(
+                    f"Unsupported file type '{file.content_type}'. "
+                    "Please upload a PNG, JPEG, or WEBP image."
+                ),
             )
+
         contents = await file.read()
+
         if len(contents) > MAX_UPLOAD_SIZE_BYTES:
             raise HTTPException(
                 status_code=413,
-                detail=f"File too large. Maximum allowed size is {MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)}MB.",
+                detail=(
+                    f"File too large. Maximum allowed size is "
+                    f"{MAX_UPLOAD_SIZE_BYTES // (1024 * 1024)}MB."
+                ),
             )
+
         result = analyze_media_image(contents, language)
         return MediaAnalysisResponse(**result)
 
@@ -155,4 +161,7 @@ async def analyze_media(
         result = analyze_media_text(text, language)
         return MediaAnalysisResponse(**result)
 
-    raise HTTPException(status_code=400, detail="Please provide either 'text' or 'file' to analyze.")
+    raise HTTPException(
+        status_code=400,
+        detail="Please provide either 'text' or 'file' to analyze.",
+    )
