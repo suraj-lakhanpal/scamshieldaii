@@ -37,7 +37,14 @@ app = FastAPI(
     description="A defensive, local heuristic scam-detection assistant.",
     version=APP_VERSION,
 )
-
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
