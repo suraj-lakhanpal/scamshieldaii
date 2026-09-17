@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScamShield AI</title>
+
+  <style>
+    :root {
+      --bg: #070812;
+      --panel: rgba(18, 22, 42, 0.72);
+      --panel-strong: rgba(24, 29, 54, 0.92);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f5f7ff;
+      --muted: #9299b8;
+      --blue: #6d7cff;
+      --purple: #a855f7;
+      --orange: #ff9f43;
+      --green: #42d392;
+      --red: #ff5c7a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 10% 0%, rgba(109, 124, 255, 0.18), transparent 32rem),
+        radial-gradient(circle at 90% 10%, rgba(168, 85, 247, 0.14), transparent 30rem),
+        linear-gradient(135deg, #070812, #0b0e1c 55%, #090b16);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+
+    button,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 36px));
+      margin: auto;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 0;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      font-size: 21px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow: 0 0 35px rgba(109, 124, 255, 0.35);
+      font-size: 21px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 14px rgba(66, 211, 146, 0.8);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 70px 0 48px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border: 1px solid rgba(109, 124, 255, 0.25);
+      border-radius: 999px;
+      background: rgba(109, 124, 255, 0.09);
+      color: #b9c0ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      max-width: 820px;
+      margin: 22px auto 18px;
+      font-size: clamp(38px, 6vw, 72px);
+      line-height: 1.02;
+      letter-spacing: -3px;
+      font-weight: 850;
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #ffffff, #aeb7ff 45%, #d8a7ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      max-width: 650px;
+      margin: auto;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.8;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .stat {
+      padding: 10px 15px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.035);
+      color: #c7cbea;
+      font-size: 13px;
+    }
+
+    .scanner-shell {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      background: linear-gradient(145deg, rgba(23, 28, 53, 0.9), rgba(10, 13, 28, 0.9));
+      box-shadow: var(--shadow);
+    }
+
+    .scanner-shell::before {
+      content: "";
+      position: absolute;
+      width: 380px;
+      height: 380px;
+      top: -220px;
+      right: -180px;
+      border-radius: 50%;
+      background: rgba(109, 124, 255, 0.16);
+      filter: blur(50px);
+      pointer-events: none;
+    }
+
+    .scanner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 28px;
+      border-bottom: 1px solid var(--border);
+      gap: 16px;
+    }
+
+    .scanner-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .scanner-title-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 13px;
+      background: rgba(109, 124, 255, 0.13);
+      color: #aeb7ff;
+      font-size: 20px;
+    }
+
+    .scanner-title h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .scanner-title span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .local-badge {
+      color: #8ce7bd;
+      background: rgba(66, 211, 146, 0.08);
+      border: 1px solid rgba(66, 211, 146, 0.2);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 22px 28px 0;
+    }
+
+    .tab {
+      border: 1px solid transparent;
+      border-radius: 14px;
+      padding: 14px 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.035);
+      transition: 0.2s ease;
+    }
+
+    .tab strong {
+      display: block;
+      margin-bottom: 4px;
+      color: inherit;
+      font-size: 14px;
+    }
+
+    .tab small {
+      font-size: 11px;
+    }
+
+    .tab.active {
+      color: white;
+      border-color: rgba(109, 124, 255, 0.6);
+      background: linear-gradient(135deg, rgba(109, 124, 255, 0.2), rgba(168, 85, 247, 0.12));
+      box-shadow: inset 0 0 25px rgba(109, 124, 255, 0.06);
+    }
+
+    .scanner-content {
+      padding: 28px;
+    }
+
+    .input-panel {
+      display: none;
+    }
+
+    .input-panel.active {
+      display: block;
+      animation: appear 0.25s ease;
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #dce0f7;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .field-label span {
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    textarea,
+    input[type="url"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      outline: none;
+      color: white;
+      background: rgba(4, 7, 18, 0.65);
+      border-radius: 16px;
+      padding: 17px;
+      resize: vertical;
+      transition: 0.2s ease;
+    }
+
+    textarea {
+      min-height: 185px;
+      line-height: 1.65;
+    }
+
+    textarea:focus,
+    input[type="url"]:focus {
+      border-color: rgba(109, 124, 255, 0.8);
+      box-shadow: 0 0 0 4px rgba(109, 124, 255, 0.09);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #626a8c;
+    }
+
+    .upload-zone {
+      min-height: 210px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px dashed rgba(146, 153, 184, 0.4);
+      border-radius: 18px;
+      padding: 30px;
+      background: rgba(4, 7, 18, 0.45);
+      transition: 0.2s ease;
+    }
+
+    .upload-zone.dragging {
+      border-color: var(--blue);
+      background: rgba(109, 124, 255, 0.09);
+    }
+
+    .upload-icon {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 15px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: rgba(109, 124, 255, 0.12);
+      color: #b6beff;
+      font-size: 26px;
+    }
+
+    .upload-zone h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .upload-zone p {
+      max-width: 430px;
+      margin: 0 auto 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .secondary-button,
+    .primary-button {
+      border: 0;
+      border-radius: 13px;
+      padding: 13px 18px;
+      font-weight: 750;
+      transition: 0.2s ease;
+    }
+
+    .secondary-button {
+      color: #dce0f7;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .primary-button {
+      color: white;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      box-shadow: 0 10px 28px rgba(109, 124, 255, 0.2);
+    }
+
+    .secondary-button:hover,
+    .primary-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .example-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .example-button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: #aeb7d8;
+      background: rgba(255,255,255,0.03);
+      font-size: 11px;
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .action-row .left-actions,
+    .action-row .right-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .language-select {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      color: #dce0f7;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .preview {
+      display: none;
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .preview img {
+      display: block;
+      max-width: 100%;
+      max-height: 240px;
+      margin: 12px auto 0;
+      border-radius: 10px;
+    }
+
+    .loading-box {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px solid rgba(109, 124, 255, 0.25);
+      border-radius: 17px;
+      background: rgba(109, 124, 255, 0.07);
+    }
+
+    .loading-box.active {
+      display: block;
+    }
+
+    .loading-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      margin-bottom: 13px;
+    }
+
+    .loading-top span:last-child {
+      color: #aeb7ff;
+    }
+
+    .progress-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      transition: width 0.3s ease;
+    }
+
+    .result {
+      display: none;
+      margin-top: 28px;
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+    }
+
+    .result.active {
+      display: block;
+      animation: appear 0.3s ease;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 28px;
+    }
+
+    .score-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: rgba(4, 7, 18, 0.4);
+    }
+
+    .score-ring {
+      --score: 0;
+      width: 155px;
+      height: 155px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #11162b 63%, transparent 64%),
+        conic-gradient(var(--score-color, var(--blue)) calc(var(--score) * 1%), rgba(255,255,255,0.08) 0);
+      box-shadow: 0 0 45px rgba(109, 124, 255, 0.12);
+    }
+
+    .score-number {
+      text-align: center;
+    }
+
+    .score-number strong {
+      display: block;
+      font-size: 39px;
+      letter-spacing: -2px;
+    }
+
+    .score-number span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .risk-label {
+      margin-top: 18px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(109, 124, 255, 0.12);
+      color: #b9c0ff;
+    }
+
+    .result-main h3 {
+      margin: 0 0 10px;
+      font-size: 23px;
+    }
+
+    .result-summary {
+      color: #c1c7e1;
+      line-height: 1.7;
+      margin-bottom: 22px;
+    }
+
+    .result-section {
+      margin-top: 22px;
+    }
+
+    .result-section h4 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px;
+      font-size: 14px;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 9px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .result-list li {
+      position: relative;
+      padding: 12px 14px 12px 35px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #c4c9df;
+      background: rgba(255,255,255,0.025);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .result-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 13px;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .technical {
+      display: grid;
+      gap: 8px;
+    }
+
+    .technical-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+    }
+
+    .technical-row span:first-child {
+      color: var(--muted);
+    }
+
+    .technical-row span:last-child {
+      color: #dce0f7;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .disclaimer {
+      margin-top: 20px;
+      color: #7f87a8;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .error-box {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 92, 122, 0.3);
+      border-radius: 13px;
+      color: #ffb4c3;
+      background: rgba(255, 92, 122, 0.08);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .error-box.active {
+      display: block;
+    }
+
+    .footer {
+      padding: 42px 0 28px;
+      color: #737b9d;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        width: min(100% - 22px, 1180px);
+      }
+
+      .navbar {
+        padding: 16px 0;
+      }
+
+      .nav-right {
+        display: none;
+      }
+
+      .hero {
+        padding: 48px 0 30px;
+      }
+
+      .hero h1 {
+        letter-spacing: -1.8px;
+      }
+
+      .hero p {
+        font-size: 14px;
+      }
+
+      .scanner-shell {
+        border-radius: 22px;
+      }
+
+      .scanner-header,
+      .scanner-content {
+        padding: 20px;
+      }
+
+      .scanner-header {
+        align-items: flex-start;
+      }
+
+      .local-badge {
+        font-size: 10px;
+      }
+
+      .tabs {
+        gap: 6px;
+        padding: 18px 18px 0;
+      }
+
+      .tab {
+        padding: 12px 5px;
+      }
+
+      .tab strong {
+        font-size: 12px;
+      }
+
+      .tab small {
+        display: none;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .score-card {
+        min-height: 230px;
+      }
+
+      .action-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .action-row .left-actions,
+      .action-row .right-actions {
+        width: 100%;
+      }
+
+      .action-row button,
+      .action-row select {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="container navbar">
+    <a class="brand" href="#">
+      <span class="brand-icon">🛡</span>
+      <span>ScamShield<span style="color:#9da8ff"> AI</span></span>
+    </a>
+
+    <div class="nav-right">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        Local API connected
+      </div>
+      <span>Defensive intelligence platform</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="eyebrow">✦ AI-powered digital protection</div>
+      <h1>
+        Your digital safety,<br />
+        <span class="gradient-text">powered by intelligence.</span>
+      </h1>
+      <p>
+        Analyze suspicious links, messages, QR codes, and images using transparent
+        defensive heuristics designed to help you spot digital scams.
+      </p>
+
+      <div class="hero-stats">
+        <span class="stat">⚡ Fast local analysis</span>
+        <span class="stat">🔒 Privacy-focused</span>
+        <span class="stat">◈ Explainable results</span>
+      </div>
+    </section>
+
+    <section class="scanner-shell">
+      <div class="scanner-header">
+        <div class="scanner-title">
+          <div class="scanner-title-icon">⌁</div>
+          <div>
+            <h2>Threat Analysis Workspace</h2>
+            <span>Choose an input and run a defensive scan</span>
+          </div>
+        </div>
+
+        <div class="local-badge">● Local AI Engine</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="link">
+          <strong>🔗 Link</strong>
+          <small>URL inspection</small>
+        </button>
+
+        <button class="tab" data-tab="message">
+          <strong>💬 Message</strong>
+          <small>Text analysis</small>
+        </button>
+
+        <button class="tab" data-tab="qr">
+          <strong>▦ QR Code</strong>
+          <small>QR inspection</small>
+        </button>
+
+        <button class="tab" data-tab="media">
+          <strong>🖼 Image</strong>
+          <small>OCR analysis</small>
+        </button>
+      </div>
+
+      <div class="scanner-content">
+        <section class="input-panel active" id="panel-link">
+          <div class="field-label">
+            <label for="linkInput">Suspicious website or URL</label>
+            <span>HTTPS recommended</span>
+          </div>
+
+          <input
+            id="linkInput"
+            type="url"
+            placeholder="https://example.com/login"
+          />
+
+          <div class="example-row">
+            <button class="example-button" data-example="safe-link">
+              Try example
+            </button>
+            <button class="example-button" data-example="suspicious-link">
+              Suspicious login URL
+            </button>
+          </div>
+
+          <div class="action-row">
+            <div class="left-actions">
+              <select id="linkLanguage" class="language-select">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+              </select>
+            </div>
+
+            <div class="right-actions">
+              <button class="secondary-button" id="resetButton">Reset</button>
+              <button class="primary-button" id="analyzeButton">Analyze Link →</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="input-panel" id="panel-message">
+          <div class="field-label">
+            <label for="messageInput">Paste a suspicious message</label>
+            <span id="messageCount">0 characters</span>
+          </div>
+
+          <textarea
+            id="messageInput"
+            placeholder="Paste an SMS, WhatsApp message, email, or social media message here..."
+          ></textarea>
+
+          <div class="example-row">
+            <button class="example-button" data-example="urgent-message">
+              Urgent OTP example
+            </button>
+            <button class="example-button" data-example="safe-message">
+              Harmless message
+            </button>
+          </div>
+
+          <div class="action-row">
+            <div class="left-actions">
+              <select id="messageLanguage" class="language-select">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+              </select>
+            </div>
+
+            <div class="right-actions">
+              <button class="secondary-button" id="resetMessageButton">Reset</button>
+              <button class="primary-button" id="analyzeMessageButton">
+                Analyze Message →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="input-panel" id="panel-qr">
+          <div class="upload-zone" id="qrDropZone">
+            <div>
+              <div class="upload-icon">▦</div>
+              <h3>Upload a QR code image</h3>
+              <p>
+                Upload a screenshot or photo containing a QR code.
+                The backend will inspect the decoded content.
+              </p>
+
+              <input class="file-input" type="file" id="qrInput" accept="image/*" />
+              <button class="secondary-button" id="qrChooseButton">
+                Choose QR Image
+              </button>
+              <div class="preview" id="qrPreview"></div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="left-actions"></div>
+            <div class="right-actions">
+              <button class="secondary-button" id="resetQrButton">Reset</button>
+              <button class="primary-button" id="analyzeQrButton">
+                Analyze QR →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="input-panel" id="panel-media">
+          <div class="upload-zone" id="mediaDropZone">
+            <div>
+              <div class="upload-icon">🖼</div>
+              <h3>Upload a suspicious screenshot</h3>
+              <p>
+                Upload an SMS, payment request, fake support message,
+                login screen, or other suspicious image.
+              </p>
+
+              <input
+                class="file-input"
+                type="file"
+                id="mediaInput"
+                accept="image/*"
+              />
+
+              <button class="secondary-button" id="mediaChooseButton">
+                Choose Image
+              </button>
+
+              <div class="preview" id="mediaPreview"></div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="left-actions"></div>
+            <div class="right-actions">
+              <button class="secondary-button" id="resetMediaButton">Reset</button>
+              <button class="primary-button" id="analyzeMediaButton">
+                Analyze Image →
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <div class="loading-box" id="loadingBox">
+          <div class="loading-top">
+            <span id="loadingText">Preparing analysis...</span>
+            <span id="loadingPercent">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+        </div>
+
+        <div class="error-box" id="errorBox"></div>
+
+        <section class="result" id="result">
+          <div class="result-grid">
+            <div class="score-card">
+              <div class="score-ring" id="scoreRing">
+                <div class="score-number">
+                  <strong id="scoreNumber">0</strong>
+                  <span>risk score</span>
+                </div>
+              </div>
+              <div class="risk-label" id="riskLabel">Not analyzed</div>
+            </div>
+
+            <div class="result-main">
+              <h3 id="resultTitle">Analysis complete</h3>
+              <div class="result-summary" id="resultSummary"></div>
+
+              <div class="result-section">
+                <h4>🚩 Red flags</h4>
+                <ul class="result-list" id="redFlags"></ul>
+              </div>
+
+              <div class="result-section">
+                <h4>🛡 Safety advice</h4>
+                <ul class="result-list" id="safetyAdvice"></ul>
+              </div>
+
+              <div class="result-section">
+                <h4>⚙ Technical details</h4>
+                <div class="technical" id="technicalDetails"></div>
+              </div>
+
+              <div class="disclaimer" id="disclaimer"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <footer class="footer">
+      ScamShield AI · Defensive analysis only · Never share OTPs, passwords, or banking credentials
+    </footer>
+  </main>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    let activeTab = "link";
+    let selectedQrFile = null;
+    let selectedMediaFile = null;
+    let loadingTimer = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    const tabs = document.querySelectorAll(".tab");
+    const panels = document.querySelectorAll(".input-panel");
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        activeTab = tab.dataset.tab;
+
+        tabs.forEach((item) => {
+          item.classList.toggle("active", item === tab);
+        });
+
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.id === `panel-${activeTab}`);
+        });
+
+        hideError();
+      });
+    });
+
+    $("messageInput").addEventListener("input", () => {
+      $("messageCount").textContent =
+        `${$("messageInput").value.length} characters`;
+    });
+
+    function showError(message) {
+      $("errorBox").textContent = message;
+      $("errorBox").classList.add("active");
+    }
+
+    function hideError() {
+      $("errorBox").classList.remove("active");
+    }
+
+    function resetResult() {
+      $("result").classList.remove("active");
+      $("scoreNumber").textContent = "0";
+      $("riskLabel").textContent = "Not analyzed";
+      $("resultSummary").textContent = "";
+      $("redFlags").innerHTML = "";
+      $("safetyAdvice").innerHTML = "";
+      $("technicalDetails").innerHTML = "";
+      $("disclaimer").textContent = "";
+    }
+
+    function resetAll() {
+      $("linkInput").value = "";
+      $("messageInput").value = "";
+      $("messageCount").textContent = "0 characters";
+
+      selectedQrFile = null;
+      selectedMediaFile = null;
+
+      $("qrInput").value = "";
+      $("mediaInput").value = "";
+      $("qrPreview").style.display = "none";
+      $("mediaPreview").style.display = "none";
+      $("qrPreview").innerHTML = "";
+      $("mediaPreview").innerHTML = "";
+
+      resetResult();
+      hideError();
+    }
+
+    $("resetButton").addEventListener("click", resetAll);
+    $("resetMessageButton").addEventListener("click", resetAll);
+    $("resetQrButton").addEventListener("click", resetAll);
+    $("resetMediaButton").addEventListener("click", resetAll);
+
+    function setupFilePicker(inputId, buttonId, previewId, type) {
+      $(buttonId).addEventListener("click", () => {
+        $(inputId).click();
+      });
+
+      $(inputId).addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (type === "qr") {
+          selectedQrFile = file;
+        } else {
+          selectedMediaFile = file;
+        }
+
+        showPreview(file, previewId);
+      });
+    }
+
+    function showPreview(file, previewId) {
+      const preview = $(previewId);
+      preview.style.display = "block";
+      preview.innerHTML = "";
+
+      const name = document.createElement("div");
+      name.textContent = `Selected: ${file.name}`;
+      preview.appendChild(name);
+
+      if (file.type.startsWith("image/")) {
+        const image = document.createElement("img");
+        image.src = URL.createObjectURL(file);
+        image.alt = "Selected image preview";
+        preview.appendChild(image);
+      }
+    }
+
+    setupFilePicker("qrInput", "qrChooseButton", "qrPreview", "qr");
+    setupFilePicker("mediaInput", "mediaChooseButton", "mediaPreview", "media");
+
+    function setupDropZone(zoneId, inputId, type) {
+      const zone = $(zoneId);
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        zone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          zone.classList.add("dragging");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        zone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          zone.classList.remove("dragging");
+        });
+      });
+
+      zone.addEventListener("drop", (event) => {
+        const file = event.dataTransfer.files[0];
+        if (!file) return;
+
+        if (type === "qr") {
+          selectedQrFile = file;
+          $("qrInput").files = event.dataTransfer.files;
+          showPreview(file, "qrPreview");
+        } else {
+          selectedMediaFile = file;
+          $("mediaInput").files = event.dataTransfer.files;
+          showPreview(file, "mediaPreview");
+        }
+      });
+    }
+
+    setupDropZone("qrDropZone", "qrInput", "qr");
+    setupDropZone("mediaDropZone", "mediaInput", "media");
+
+    function startLoading() {
+      $("loadingBox").classList.add("active");
+      $("progressBar").style.width = "0%";
+      $("loadingPercent").textContent = "0%";
+      $("loadingText").textContent = "Preparing analysis...";
+
+      let progress = 0;
+
+      clearInterval(loadingTimer);
+
+      loadingTimer = setInterval(() => {
+        progress = Math.min(progress + 7, 92);
+        $("progressBar").style.width = `${progress}%`;
+        $("loadingPercent").textContent = `${progress}%`;
+
+        if (progress < 30) {
+          $("loadingText").textContent = "Inspecting input...";
+        } else if (progress < 60) {
+          $("loadingText").textContent = "Checking suspicious patterns...";
+        } else {
+          $("loadingText").textContent = "Preparing explainable results...";
+        }
+      }, 180);
+    }
+
+    function stopLoading() {
+      clearInterval(loadingTimer);
+      $("progressBar").style.width = "100%";
+      $("loadingPercent").textContent = "100%";
+      $("loadingText").textContent = "Analysis complete";
+
+      setTimeout(() => {
+        $("loadingBox").classList.remove("active");
+      }, 400);
+    }
+
+    function getScoreColor(score) {
+      if (score >= 70) return "#ff5c7a";
+      if (score >= 40) return "#ff9f43";
+      return "#42d392";
+    }
+
+    function normalizeList(value) {
+      if (!value) return [];
+      if (Array.isArray(value)) return value;
+      return [String(value)];
+    }
+
+    function displayTechnicalDetails(details) {
+      const container = $("technicalDetails");
+      container.innerHTML = "";
+
+      if (!details || typeof details !== "object") {
+        container.innerHTML =
+          '<div class="technical-row"><span>Details</span><span>Not provided</span></div>';
+        return;
+      }
+
+      Object.entries(details).forEach(([key, value]) => {
+        const row = document.createElement("div");
+        row.className = "technical-row";
+
+        const label = document.createElement("span");
+        label.textContent = key.replaceAll("_", " ");
+
+        const result = document.createElement("span");
+        result.textContent =
+          typeof value === "object" ? JSON.stringify(value) : String(value);
+
+        row.appendChild(label);
+        row.appendChild(result);
+        container.appendChild(row);
+      });
+    }
+
+    function displayList(elementId, values, emptyText) {
+      const list = $(elementId);
+      list.innerHTML = "";
+
+      const items = normalizeList(values);
+
+      if (!items.length) {
+        const item = document.createElement("li");
+        item.textContent = emptyText;
+        list.appendChild(item);
+        return;
+      }
+
+      items.forEach((value) => {
+        const item = document.createElement("li");
+        item.textContent = String(value);
+        list.appendChild(item);
+      });
+    }
+
+    function displayResult(data) {
+      const score = Number(data.risk_score ?? data.score ?? 0);
+      const risk = data.risk_level ?? data.risk ?? "unknown";
+
+      $("scoreNumber").textContent = Math.round(score);
+      $("scoreRing").style.setProperty("--score", Math.max(0, Math.min(100, score)));
+      $("scoreRing").style.setProperty("--score-color", getScoreColor(score));
+
+      $("riskLabel").textContent = String(risk).replaceAll("_", " ").toUpperCase();
+      $("riskLabel").style.color = getScoreColor(score);
+      $("riskLabel").style.background = `${getScoreColor(score)}18`;
+
+      $("resultTitle").textContent = "Analysis complete";
+      $("resultSummary").textContent =
+        data.summary || "The input has been analyzed using defensive heuristics.";
+
+      displayList(
+        "redFlags",
+        data.red_flags,
+        "No specific red flags were detected."
+      );
+
+      displayList(
+        "safetyAdvice",
+        data.safety_advice,
+        "Stay cautious and avoid sharing sensitive information."
+      );
+
+      displayTechnicalDetails(data.technical_details);
+
+      $("disclaimer").textContent =
+        data.disclaimer ||
+        "This is a heuristic defensive tool. A low score does not guarantee that an input is safe.";
+
+      $("result").classList.add("active");
+      $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function sendRequest(endpoint, options) {
+      startLoading();
+      hideError();
+      resetResult();
+
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw new Error("The backend returned an invalid response.");
+        }
+
+        if (!response.ok) {
+          throw new Error(
+            data.detail || data.message || `Request failed with status ${response.status}.`
+          );
+        }
+
+        displayResult(data);
+      } catch (error) {
+        showError(
+          `${error.message} Make sure the FastAPI backend is running at ${API_BASE}.`
+        );
+      } finally {
+        stopLoading();
+      }
+    }
+
+    $("analyzeButton").addEventListener("click", () => {
+      const url = $("linkInput").value.trim();
+
+      if (!url) {
+        showError("Please enter a URL first.");
+        return;
+      }
+
+      sendRequest("/analyze-link", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          url,
+          language: $("linkLanguage").value
+        })
+      });
+    });
+
+    $("analyzeMessageButton").addEventListener("click", () => {
+      const message = $("messageInput").value.trim();
+
+      if (!message) {
+        showError("Please paste a message first.");
+        return;
+      }
+
+      sendRequest("/analyze-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message,
+          language: $("messageLanguage").value
+        })
+      });
+    });
+
+    $("analyzeQrButton").addEventListener("click", () => {
+      if (!selectedQrFile) {
+        showError("Please choose a QR image first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", selectedQrFile);
+
+      sendRequest("/analyze-qr", {
+        method: "POST",
+        body: formData
+      });
+    });
+
+    $("analyzeMediaButton").addEventListener("click", () => {
+      if (!selectedMediaFile) {
+        showError("Please choose an image first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", selectedMediaFile);
+
+      sendRequest("/analyze-media", {
+        method: "POST",
+        body: formData
+      });
+    });
+
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const example = button.dataset.example;
+
+        if (example === "safe-link") {
+          $("linkInput").value = "https://www.google.com";
+        }
+
+        if (example === "suspicious-link") {
+          $("linkInput").value =
+            "http://secure-account-verification-login.example.com/verify-otp";
+        }
+
+        if (example === "urgent-message") {
+          $("messageInput").value =
+            "URGENT! Your bank account will be blocked today. Share your OTP immediately to verify your account and avoid suspension.";
+          $("messageCount").textContent =
+            `${$("messageInput").value.length} characters`;
+        }
+
+        if (example === "safe-message") {
+          $("messageInput").value =
+            "Hey, are we still meeting at the library tomorrow afternoon?";
+          $("messageCount").textContent =
+            `${$("messageInput").value.length} characters`;
+        }
+      });
+    });
+  </script>
+</body>
+</html>
